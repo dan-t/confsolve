@@ -16,6 +16,7 @@ import Control.Monad (mapM_)
 import Foreign.Marshal.Error (void)
 import qualified FileConflict as FC
 import qualified Dropbox as DB
+import qualified Wuala as WU
 import Utils
 
 main = do
@@ -27,7 +28,7 @@ main = do
         ("-h":[])     -> printHelp >> printRuntineHelp
 	("--help":[]) -> printHelp >> printRuntineHelp
 	("-d":dir:[]) -> void $ resolve DB.DropboxConflict dir HS.empty
-	("-w":dir:[]) -> putStrLn "Not yet implemented for wuala!" >> exitSuccess
+	("-w":dir:[]) -> void $ resolve WU.WualaConflict dir HS.empty
 	otherwise     -> error $ "Invalid Arguments!"
 
 printHelp = do

@@ -1,13 +1,13 @@
-module Dropbox where
+module Wuala where
 import Data.List
 import System.FilePath
 import Text.Regex.Posix
 import FileConflict
 import Utils
 
-data DropboxConflict = DropboxConflict
+data WualaConflict = WualaConflict
 
-instance FileConflict DropboxConflict where
+instance FileConflict WualaConflict where
    find fc file = do
       if hasConflict file
 	 then do
@@ -17,8 +17,8 @@ instance FileConflict DropboxConflict where
 	 else return Nothing
 	 
 
-hasConflict file = "conflicted copy" `isInfixOf` file
-fileRegex = "(.*) \\((.*) conflicted copy (.*)\\)(.*)"
+hasConflict file = "conflicting version" `isInfixOf` file
+fileRegex = "(.*) \\(conflicting version (.*) from (.*)\\)(.*)"
 pathRegex = "(.*)" </> fileRegex
 
 conflictInfo dir fileName suffix = do
@@ -28,5 +28,5 @@ conflictInfo dir fileName suffix = do
    where
       conflicts dir confs = map (\c -> conflict dir c) confs 
       conflict dir conf =
-	 let (_:_:host:date:_:[]) = concat (conf =~ fileRegex :: [[String]])
-	     in Conflict (host ++ " from " ++ date) (dir </> conf)
+	 let (_:_:version:host:_:[]) = concat (conf =~ fileRegex :: [[String]])
+	     in Conflict ("version " ++ version ++ " from " ++ host) (dir </> conf)
