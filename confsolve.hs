@@ -23,17 +23,16 @@ main = do
    hSetBuffering stdin  NoBuffering
    args <- getArgs
    case args of
-	[]            -> printUsage >> printHelp
-        ("-h":[])     -> printUsage >> printHelp
-	("--help":[]) -> printUsage >> printHelp
+	[]            -> printHelp
+        ("-h":[])     -> printHelp
+	("--help":[]) -> printHelp
 	("-d":dir:[]) -> void $ resolve DB.DropboxConflict dir HS.empty
 	("-w":dir:[]) -> putStrLn "Not yet implemented for wuala!" >> exitSuccess
-	otherwise     -> error $ "Invalid Arguments\n" ++ usage
-
-printUsage = putStrLn usage
-usage = "\nUsage: confsolve OPTION DIRECTORY"
+	otherwise     -> error $ "Invalid Arguments!"
 
 printHelp = do
+   putStrLn $ ""
+   putStrLn $ "Usage: confsolve OPTION DIRECTORY"
    putStrLn $ ""
    putStrLn $ "Options:"
    putStrLn $ "   -d   resolve Dropbox file conflicts"
