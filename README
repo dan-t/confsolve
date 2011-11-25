@@ -1,0 +1,25 @@
+Make and Install:
+   cabal install --prefix=INSTALL_LOCATION confsolve.cabal
+
+Usage: confsolve DIRECTORY
+
+Runtime options:
+   Take File (NUM) => By pressing a digit, the conflicting file with the
+                      digit NUM is used as the new version. A copy of the
+                      current file and the other conflicting files is put
+                      into the trash directory (TRASHDIR).
+
+   Move to (T)rash => By pressing 'T' or 't', all conflicting files are
+                      moved into the trash directory (TRASHDIR).
+
+   Show (D)iff     => By pressing 'D' or 'd', the difference between the first
+                      and the second conflicting file is shown. The diff tool
+                      can be specified by the user by setting the environment
+                      variable 'CONFSOLVE_DIFF'. The default diff tool is 'gvimdiff -f'.
+
+   (S)kip          => By pressing 'S' or 's', the current conflict is skipped
+                      and the next one is shown.
+
+   (Q)uit          => By pressing 'Q' or 'q', the application is quit.
+
+   (H)elp          => By pressing 'H' or 'h', this help is printed.
