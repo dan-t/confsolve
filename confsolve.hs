@@ -24,8 +24,8 @@ main = do
    args <- getArgs
    case args of
 	[]            -> printHelp
-        ("-h":[])     -> printHelp
-	("--help":[]) -> printHelp
+        ("-h":[])     -> printHelp >> printRuntineHelp
+	("--help":[]) -> printHelp >> printRuntineHelp
 	("-d":dir:[]) -> void $ resolve DB.DropboxConflict dir HS.empty
 	("-w":dir:[]) -> putStrLn "Not yet implemented for wuala!" >> exitSuccess
 	otherwise     -> error $ "Invalid Arguments!"
