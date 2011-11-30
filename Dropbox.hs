@@ -9,24 +9,29 @@ data DropboxConflict = DropboxConflict
 
 instance FileConflict DropboxConflict where
    find fc file = do
-      if hasConflict file
+      let match = concat (file =~ pathRegex :: [[String]])
+      if length match == 6
 	 then do
-	    let (_:dir:fileName:_:_:suffix:_) = concat (file =~ pathRegex :: [[String]])
+	    let (_:dir:fileName:_:_:suffix:[]) = match
 	    confInfo <- conflictInfo dir fileName suffix
 	    return $ Just confInfo
 	 else return Nothing
-	 
-
-hasConflict file = "conflicted copy" `isInfixOf` file
-fileRegex = "(.*) \\((.*) conflicted copy (.*)\\)(.*)"
-pathRegex = "(.*)" </> fileRegex
 
 conflictInfo dir fileName suffix = do
    conts <- getDirContents dir
-   let confs = filter (\c -> hasConflict c && fileName `isPrefixOf` c) conts
-   return $ ConflictInfo dir fileName suffix (conflicts dir confs)
+   let confs = filterConfs conts []
+   return $ ConflictInfo dir fileName suffix confs
    where
-      conflicts dir confs = map (\c -> conflict dir c) confs 
-      conflict dir conf =
-	 let (_:_:host:date:_:[]) = concat (conf =~ fileRegex :: [[String]])
-	     in Conflict (host ++ " from " ++ date) (dir </> conf)
+      filterConfs []     confs = confs
+      filterConfs (c:cs) confs =
+	 let match = concat (c =~ fileRegex :: [[String]])
+	     in if length match == 5
+		   then let (_:fname:host:date:suff:[]) = match
+			    in if fname == fileName && suff == suffix
+			          then let conf = Conflict (host ++ " from " ++ date) (dir </> c)
+				           in filterConfs cs (conf : confs)
+				  else filterConfs cs confs
+		   else filterConfs cs confs
+
+fileRegex = "(.*) \\((.*) conflicted copy (.*)\\)(.*)"
+pathRegex = "(.*)" </> fileRegex
