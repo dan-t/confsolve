@@ -1,7 +1,7 @@
 module Wuala where
 import Data.List
 import System.FilePath
-import Text.Regex.Posix
+import Text.Regex.PCRE
 import FileConflict
 import Utils
 
@@ -32,6 +32,6 @@ conflictInfo dir fileName suffix = do
 			                   in filterConfs cs (conf : confs)
 				  else filterConfs cs confs
 		   else filterConfs cs confs
-		     
+
 fileRegex = "(.*) \\(conflicting version (.*) from (.*)\\)(.*)"
 pathRegex = "(.*)" </> fileRegex

@@ -1,7 +1,7 @@
 module Dropbox where
 import Data.List
 import System.FilePath
-import Text.Regex.Posix
+import Text.Regex.PCRE
 import FileConflict
 import Utils
 
