@@ -16,7 +16,7 @@ import Control.Monad (mapM_)
 import Foreign.Marshal.Error (void)
 import qualified FileConflict as FC
 import qualified Dropbox.Conflict as DB
-import qualified Wuala as WU
+import qualified Wuala.Conflict as WU
 import Utils
 
 main = do
