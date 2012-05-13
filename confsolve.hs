@@ -70,7 +70,7 @@ printRuntineHelp = do
    putStrLn $ "   (H)elp            => By pressing 'h', this help is printed."
    putStrLn $ ""
 
-type Resolved = HS.Set String
+type Resolved = HS.HashSet String
 
 resolve :: (FC.FileConflict a) => a -> String -> Resolved -> IO Resolved
 resolve fileConflict file resolved = do

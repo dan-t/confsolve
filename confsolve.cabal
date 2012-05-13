@@ -16,4 +16,4 @@ source-repository head
 
 Executable confsolve
   Main-is:       confsolve.hs
-  Build-Depends: base >= 3 && < 5, time >= 1.2 && < 1.3, process >= 1.0 && < 1.1, filepath >= 1.2 && < 1.3, directory >= 1.1 && < 1.2, haskell98 >= 1.1 && < 1.2, hashmap >= 1.2.0.1 && < 1.3, text >= 0.11.2.0 && < 0.12, attoparsec >= 0.10.1.1 && < 0.11
+  Build-Depends: base >= 3 && < 5, time >= 1.2 && < 1.3, process >= 1.0 && < 1.1, filepath >= 1.2 && < 1.3, directory >= 1.1 && < 1.2, haskell98 >= 1.1 && < 1.2, unordered-containers >= 0.2.1.0 && < 0.3, text >= 0.11.2.0 && < 0.12, attoparsec >= 0.10.1.1 && < 0.11
