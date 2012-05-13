@@ -15,8 +15,8 @@ parse fileName =
 
 fileInfo :: P.Parser FileInfo
 fileInfo = FileInfo <$> (T.strip <$> tillLeftPar)
-                    <*> (P.string "(" *> till')
-                    <*> (P.string "'s conflicted copy " *> tillRightPar <* P.string ")")
+                    <*> (P.char '(' *> till')
+                    <*> (P.string "'s conflicted copy " *> tillRightPar <* P.char ')')
    where
       tillLeftPar  = P.takeWhile1 (\c -> c /= '(')
       till'        = P.takeWhile1 (\c -> c /= '\'')
