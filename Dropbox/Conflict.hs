@@ -35,7 +35,7 @@ conflictInfo dir fileName suffix = do
             case FNP.parse (T.pack fn) of
                  Just (FNP.FileInfo f h d) ->
                     if fileName == T.unpack f
-                       then let conf = Conflict (T.unpack d ++ " from " ++ T.unpack h) (dir </> c)
+                       then let conf = Conflict ("Version " ++ T.unpack d ++ " from " ++ T.unpack h) (dir </> c)
                                 in filterConfs cs (conf : confs)
                        else filterConfs cs confs
 
