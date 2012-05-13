@@ -15,7 +15,7 @@ import qualified Data.HashSet as HS
 import Control.Monad (mapM_)
 import Foreign.Marshal.Error (void)
 import qualified FileConflict as FC
-import qualified Dropbox as DB
+import qualified Dropbox.Conflict as DB
 import qualified Wuala as WU
 import Utils
 
@@ -114,7 +114,7 @@ putConfInfo confInfo = do
 
 
 askUser confInfo = do
-   putStr "\n(T)ake File (NUM) | (M)ove to Trash | Show (D)iff (NUM [NUM]) | (S)kip | (Q)uit | (H)elp: " 
+   putStr "\n(T)ake File (NUM) | (M)ove to Trash | Show (D)iff (NUM [NUM]) | (S)kip | (Q)uit | (H)elp: "
    line <- getLine
    let confs        = FC.conflicts confInfo
        numConfs     = length confs
@@ -127,16 +127,16 @@ askUser confInfo = do
         ('T':d:[]) | validD d  -> takeFile (digitToInt d) confInfo
 	           | otherwise -> invalidTake >> askAgain
 
-        ('M':[]) -> mapM_ (\c -> moveToTrash $ FC.filePath c) confs  
+        ('M':[]) -> mapM_ (\c -> moveToTrash $ FC.filePath c) confs
 
-        ('D':[]) | numConfs == 1 -> do showDiff (FC.origFilePath confInfo) 
-	                                        (FC.filePath $ confs !! 0) 
-				       askAgain      
+        ('D':[]) | numConfs == 1 -> do showDiff (FC.origFilePath confInfo)
+	                                        (FC.filePath $ confs !! 0)
+				       askAgain
 
 	         | otherwise     -> invalidInput >> askAgain
 
-        ('D':d:[]) | validD d  -> do let i = (digitToInt d) - 1 
-				     showDiff (FC.origFilePath confInfo) 
+        ('D':d:[]) | validD d  -> do let i = (digitToInt d) - 1
+				     showDiff (FC.origFilePath confInfo)
 				              (FC.filePath $ confs !! i)
 				     askAgain
 
@@ -144,7 +144,7 @@ askUser confInfo = do
 
         ('D':d1:d2:[]) | validD d1 && validD d2 -> do let i1 = (digitToInt d1) - 1
 						          i2 = (digitToInt d2) - 1
-						      showDiff (FC.filePath $ confs !! i1) 
+						      showDiff (FC.filePath $ confs !! i1)
 						               (FC.filePath $ confs !! i2)
 						      askAgain
 
@@ -160,11 +160,11 @@ askUser confInfo = do
       validDigit min max d = isDigit d && let i = digitToInt d in i >= min && i <= max
 
       moveToTrash file =
-         errorsToStderr $ do 
+         errorsToStderr $ do
   	  trashDir <- trashDirectory
   	  createDirectoryIfMissing True trashDir
   	  let (dir, fileName) = splitFileName file
-  	  copyFile file (trashDir </> fileName) 
+  	  copyFile file (trashDir </> fileName)
   	  removeFile file
 
       takeFile num confInfo = do
@@ -173,7 +173,7 @@ askUser confInfo = do
 	     confs      = FC.conflicts confInfo
              file       = FC.filePath $ confs !! idx
   	     origFile   = FC.origFilePath confInfo
-  	     origBackup = FC.dir confInfo </> FC.fileName confInfo 
+  	     origBackup = FC.dir confInfo </> FC.fileName confInfo
 	                  ++ "_backup_" ++ show year ++ "-" ++ show month
 			  ++ "-" ++ show day ++ FC.suffix confInfo
 
