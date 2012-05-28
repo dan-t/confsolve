@@ -65,7 +65,9 @@ allExtensions :: FP.FilePath -> T.Text
 allExtensions = (T.intercalate ".") . FP.extensions
 
 replaceBaseName :: FP.FilePath -> FP.FilePath -> FP.FilePath
-replaceBaseName filePath newBaseName = dir </> newBaseName <.> ext
+replaceBaseName filePath newBaseName
+   | T.null ext = dir </> newBaseName
+   | otherwise  = dir </> newBaseName <.> ext
    where
       dir = FP.directory filePath
       ext = allExtensions filePath
