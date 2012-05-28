@@ -48,9 +48,7 @@ getEnvOrDefault envVar defaultValue = do
 
 toText :: FP.FilePath -> T.Text
 toText filePath =
-   either (\text -> error $ "Couldn't decode FilePath '" ++ show filePath ++ "' to Text!")
-          id
-          (FP.toText filePath)
+   either id id (FP.toText filePath)
 
 toString :: FP.FilePath -> String
 toString = T.unpack . toText
