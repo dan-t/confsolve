@@ -12,7 +12,7 @@ import qualified Data.HashMap.Strict as HM
 import qualified Filesystem as FS
 import qualified Data.Text as T
 import qualified Filesystem.Path.CurrentOS as FP
-import Filesystem.Path.CurrentOS ((</>), (<.>))
+import Filesystem.Path.CurrentOS ((</>))
 import Control.Monad (mapM_, when)
 import Control.Applicative ((<$>))
 import Foreign.Marshal.Error (void)
