@@ -13,36 +13,27 @@ import qualified Filesystem as FS
 import qualified Data.Text as T
 import qualified Filesystem.Path.CurrentOS as FP
 import Filesystem.Path.CurrentOS ((</>), (<.>))
-import Control.Monad (mapM_)
+import Control.Monad (mapM_, when)
 import Control.Applicative ((<$>))
 import Foreign.Marshal.Error (void)
 import qualified FileConflict as FC
 import qualified Dropbox.Conflict as DB
 import qualified Wuala.Conflict as WU
 import Utils
+import ConfsolveArgs
 
 
 main = do
    hSetBuffering stdout NoBuffering
    hSetBuffering stdin  NoBuffering
-   args <- getArgs
-   case args of
-	[]            -> printHelp
-        ("-h":[])     -> printHelp >> printRuntineHelp
-	("--help":[]) -> printHelp >> printRuntineHelp
-	("-d":dir:[]) -> resolveConflicts DB.Parser (FP.fromText $ T.pack dir)
-	("-w":dir:[]) -> resolveConflicts WU.Parser (FP.fromText $ T.pack dir)
-	otherwise     -> error $ "Invalid Arguments!"
+   args <- confsolveArgs
+   let dir = FP.fromText $ T.pack (directory args)
+   when (dropbox args) $
+      resolveConflicts DB.Parser dir
 
-printHelp = do
-   putStrLn $ ""
-   putStrLn $ "Usage: confsolve OPTION DIRECTORY"
-   putStrLn $ ""
-   putStrLn $ "Options:"
-   putStrLn $ "   -d   resolve Dropbox file conflicts"
-   putStrLn $ "   -w   resolve Wuala file conflicts"
-   putStrLn $ "   -h   print this help message"
-   putStrLn $ ""
+   when (wuala args) $
+      resolveConflicts WU.Parser dir
+
 
 printRuntineHelp = do
    trashDir <- show <$> trashDirectory
