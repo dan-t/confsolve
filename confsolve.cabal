@@ -7,8 +7,8 @@ Maintainer:    daniel.trstenjak@gmail.com
 Build-Type:    Simple
 Category:      Utils
 Cabal-Version: >=1.6
-Synopsis:      A command line tool for resolving conflicts of file synchronizers. Currently supported are Dropbox and Wuala.
-Description:   A command line tool for resolving conflicts of file synchronizers. Currently supported are Dropbox and Wuala.
+Synopsis:      A command line tool for resolving conflicts of file synchronizers.
+Description:   A command line tool for resolving conflicts of file synchronizers.
 
 source-repository head
   type:     git
