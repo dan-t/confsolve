@@ -1,23 +1,26 @@
-{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE ScopedTypeVariables, OverloadedStrings #-}
 
 import System (getArgs)
-import System.Directory
 import System.IO
 import System.IO.Error (IOErrorType)
-import System.FilePath
 import System.Environment
 import System.Process
 import System.Exit
-import Data.List (isInfixOf, isSuffixOf, isPrefixOf, concat, foldr)
 import Data.Char (intToDigit, digitToInt, isDigit, toUpper)
 import Data.Foldable (foldrM, foldlM)
-import qualified Data.HashSet as HS
+import qualified Data.HashMap.Strict as HM
+import qualified Filesystem as FS
+import qualified Data.Text as T
+import qualified Filesystem.Path.CurrentOS as FP
+import Filesystem.Path.CurrentOS ((</>), (<.>))
 import Control.Monad (mapM_)
+import Control.Applicative ((<$>))
 import Foreign.Marshal.Error (void)
 import qualified FileConflict as FC
 import qualified Dropbox.Conflict as DB
 import qualified Wuala.Conflict as WU
 import Utils
+
 
 main = do
    hSetBuffering stdout NoBuffering
@@ -27,8 +30,8 @@ main = do
 	[]            -> printHelp
         ("-h":[])     -> printHelp >> printRuntineHelp
 	("--help":[]) -> printHelp >> printRuntineHelp
-	("-d":dir:[]) -> void $ resolve DB.DropboxConflict dir HS.empty
-	("-w":dir:[]) -> void $ resolve WU.WualaConflict dir HS.empty
+	("-d":dir:[]) -> resolveConflicts DB.Parser (FP.fromText $ T.pack dir)
+	("-w":dir:[]) -> resolveConflicts WU.Parser (FP.fromText $ T.pack dir)
 	otherwise     -> error $ "Invalid Arguments!"
 
 printHelp = do
@@ -42,7 +45,7 @@ printHelp = do
    putStrLn $ ""
 
 printRuntineHelp = do
-   trashDir <- trashDirectory
+   trashDir <- show <$> trashDirectory
    putStrLn $ ""
    putStrLn $ "Runtime Options:"
    putStrLn $ "   (T)ake File (NUM) => By pressing 't' and a digit, the conflicting file with the"
@@ -70,73 +73,85 @@ printRuntineHelp = do
    putStrLn $ "   (H)elp            => By pressing 'h', this help is printed."
    putStrLn $ ""
 
-type Resolved = HS.HashSet String
+type Conflicts = HM.HashMap T.Text [FC.ConflictingFile]
 
-resolve :: (FC.FileConflict a) => a -> String -> Resolved -> IO Resolved
-resolve fileConflict file resolved = do
-   dirExists <- doesDirectoryExist file
-   if dirExists
+
+resolveConflicts :: FC.ConflictParser parser => parser -> FP.FilePath -> IO ()
+resolveConflicts parser filePath = do
+   conflicts <- collectConflicts parser filePath HM.empty
+   mapM_ (handleConflict . conflict) (HM.toList conflicts)
+   where
+      conflict (path, files) = FC.Conflict (FP.fromText path) files
+
+
+collectConflicts :: FC.ConflictParser parser => parser -> FP.FilePath -> Conflicts -> IO Conflicts
+collectConflicts parser filePath conflicts = do
+   isDir <- FS.isDirectory filePath
+   if isDir
       then do
-	 entries <- getDirContents file
-	 foldrM (\e r -> resolve fileConflict (file </> e) r) resolved entries
+         entries <- FS.listDirectory filePath
+         foldrM (\entry conflicts -> collectConflicts parser entry conflicts) conflicts entries
       else do
-	 fileExists <- doesFileExist file
-	 let isntResolved = not $ file `HS.member` resolved
-	 if fileExists && isntResolved
-	    then do
-	       maybeConfInfo <- FC.find fileConflict file
-	       case maybeConfInfo of
-		    Nothing       -> return resolved
-		    Just confInfo -> do
-		       handleConflict confInfo
-		       return $ foldr (\c r -> HS.insert (FC.filePath c) r) resolved (FC.conflicts confInfo)
-	    else return resolved
+         isFile <- FS.isFile filePath
+         if isFile
+            then do
+               let bname = toText $ FP.basename filePath
+               case FC.parseConflict parser bname of
+                    Just (realBaseName, details) -> do
+                       return $ HM.insertWith (++)
+                                              (toText $ replaceBaseName filePath (FP.fromText realBaseName))
+                                              [FC.ConflictingFile details filePath]
+                                              conflicts
+
+                    Nothing -> return conflicts
+
+            else return conflicts
 
 
-handleConflict :: FC.ConflictInfo -> IO ()
-handleConflict confInfo = do
-   let origFP = FC.origFilePath confInfo
-   exists <- doesFileExist origFP
+handleConflict :: FC.Conflict -> IO ()
+handleConflict conflict = do
+   let origFP = FC.origFilePath conflict
+   exists <- FS.isFile origFP
    if not exists
-      then putStrLn $ "Found conflicts for the file '" ++ origFP ++ "', but the file itself is missing! Skipping it."
+      then putStrLn $ "Found conflicts for the file '" ++ show origFP ++ "', but the file itself is missing! Skipping it."
       else do
-	 putConfInfo confInfo
-	 askUser confInfo
+	 putConflict conflict
+	 askUser conflict
 
 
-putConfInfo :: FC.ConflictInfo -> IO ()
-putConfInfo confInfo = do
-   putStrLn $ "\nConflicting file: " ++ FC.origFilePath confInfo
-   void $ foldlM (\i c -> putConf i c >> (return $ i+1)) 1 (FC.conflicts confInfo)
+putConflict :: FC.Conflict -> IO ()
+putConflict conflict = do
+   putStrLn $ "\nConflicting file: " ++ (show $ FC.origFilePath conflict)
+   void $ foldlM (\i c -> putConf i c >> (return $ i+1)) 1 (FC.conflictingFiles conflict)
    where
       putConf idx conf =
-	 putStrLn $ "   (" ++ [intToDigit idx] ++ ") " ++ FC.details conf
+	 putStrLn $ "   (" ++ [intToDigit idx] ++ ") " ++ (show $ FC.details conf)
 
 
-askUser confInfo = do
+askUser conflict = do
    putStr "\n(T)ake File (NUM) | (M)ove to Trash | Show (D)iff (NUM [NUM]) | (S)kip | (Q)uit | (H)elp: "
    line <- getLine
-   let confs        = FC.conflicts confInfo
+   let confs        = FC.conflictingFiles conflict
        numConfs     = length confs
        validD       = validDigit 1 numConfs
        invalidTake  = putStrLn $ "Invalid input! Use e.g: 't1'"
        invalidDiff  = putStrLn $ "Invalid input! Use e.g: 'd1' or 'd12'"
        invalidInput = putStrLn $ "Invalid input! See Help"
-       askAgain     = askUser confInfo
+       askAgain     = askUser conflict
    case map toUpper line of
-        ('T':d:[]) | validD d  -> takeFile (digitToInt d) confInfo
+        ('T':d:[]) | validD d  -> takeFile (digitToInt d) conflict
 	           | otherwise -> invalidTake >> askAgain
 
         ('M':[]) -> mapM_ (\c -> moveToTrash $ FC.filePath c) confs
 
-        ('D':[]) | numConfs == 1 -> do showDiff (FC.origFilePath confInfo)
+        ('D':[]) | numConfs == 1 -> do showDiff (FC.origFilePath conflict)
 	                                        (FC.filePath $ confs !! 0)
 				       askAgain
 
 	         | otherwise     -> invalidInput >> askAgain
 
         ('D':d:[]) | validD d  -> do let i = (digitToInt d) - 1
-				     showDiff (FC.origFilePath confInfo)
+				     showDiff (FC.origFilePath conflict)
 				              (FC.filePath $ confs !! i)
 				     askAgain
 
@@ -159,34 +174,34 @@ askUser confInfo = do
    where
       validDigit min max d = isDigit d && let i = digitToInt d in i >= min && i <= max
 
-      moveToTrash file =
+      moveToTrash filePath =
          errorsToStderr $ do
   	  trashDir <- trashDirectory
-  	  createDirectoryIfMissing True trashDir
-  	  let (dir, fileName) = splitFileName file
-  	  copyFile file (trashDir </> fileName)
-  	  removeFile file
+          FS.createTree trashDir
+          let fileName = FP.filename filePath
+          FS.copyFile filePath (trashDir </> fileName)
+          FS.removeFile filePath
 
-      takeFile num confInfo = do
+      takeFile num conflict = do
          (year, month, day) <- getCurrentDate
-         let idx        = num - 1
-	     confs      = FC.conflicts confInfo
-             file       = FC.filePath $ confs !! idx
-  	     origFile   = FC.origFilePath confInfo
-  	     origBackup = FC.dir confInfo </> FC.fileName confInfo
-	                  ++ "_backup_" ++ show year ++ "-" ++ show month
-			  ++ "-" ++ show day ++ FC.suffix confInfo
+         let idx            = num - 1
+	     confs          = FC.conflictingFiles conflict
+             file           = FC.filePath $ confs !! idx
+             origFile       = FC.origFilePath conflict
+             backupSpec     = T.pack $ "_backup_" ++ show year ++ "-" ++ show month ++ "-" ++ show day
+             backupBaseName = (toText $ FP.basename origFile) `T.append` backupSpec
+             backupFile     = replaceBaseName origFile (FP.fromText backupBaseName)
 
          errorsToStderr $ do
-	    copyFile origFile origBackup
-            moveToTrash origBackup
-            copyFile file origFile
+	    FS.copyFile origFile backupFile
+            moveToTrash backupFile
+            FS.copyFile file origFile
             mapM_ (\c -> moveToTrash (FC.filePath c)) confs
 
       showDiff file1 file2 = do
          putStrLn ""
          diff <- getEnvOrDefault "CONFSOLVE_DIFF" defaultDiff
-         handle <- runCommand $ diff ++ " " ++ quote file1 ++ " " ++ quote file2
+         handle <- runCommand $ diff ++ " " ++ (quote $ toString file1) ++ " " ++ (quote $ toString file2)
          waitForProcess handle
          return ()
 
