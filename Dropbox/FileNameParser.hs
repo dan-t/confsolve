@@ -18,9 +18,9 @@ fileInfo = FileInfo <$> (T.strip <$> tillLeftPar)
                     <*> (P.char '(' *> till')
                     <*> (P.string "'s conflicted copy " *> tillRightPar <* P.char ')')
    where
-      tillLeftPar  = P.takeWhile1 (\c -> c /= '(')
-      till'        = P.takeWhile1 (\c -> c /= '\'')
-      tillRightPar = P.takeWhile1 (\c -> c /= ')')
+      tillLeftPar  = P.takeWhile1 (/= '(')
+      till'        = P.takeWhile1 (/= '\'')
+      tillRightPar = P.takeWhile1 (/= ')')
 
 data FileInfo = FileInfo {
    fileName :: T.Text,

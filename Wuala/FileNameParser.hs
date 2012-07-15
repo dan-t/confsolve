@@ -20,8 +20,8 @@ fileInfo = FileInfo <$> (T.strip <$> tillLeftPar)
                     <*> (P.string " from " *> tillRightPar)
    where
       version      = P.takeWhile1 isNumber
-      tillLeftPar  = P.takeWhile1 (\c -> c /= '(')
-      tillRightPar = P.takeWhile1 (\c -> c /= ')')
+      tillLeftPar  = P.takeWhile1 (/= '(')
+      tillRightPar = P.takeWhile1 (/= ')')
 
 data FileInfo = FileInfo {
    fileName :: T.Text,
