@@ -1,6 +1,5 @@
 {-# LANGUAGE ScopedTypeVariables, OverloadedStrings #-}
 
-import System (getArgs)
 import System.IO
 import System.IO.Error (IOErrorType)
 import System.Environment

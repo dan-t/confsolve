@@ -1,5 +1,5 @@
 Name:          confsolve
-Version:       0.3.2
+Version:       0.3.3
 License:       BSD3
 License-file:  LICENSE
 Author:        Daniel Trstenjak
@@ -17,4 +17,4 @@ source-repository head
 Executable confsolve
   Main-is:       confsolve.hs
   ghc-options:   -funbox-strict-fields
-  Build-Depends: base >= 3 && < 5, time >= 1.2 && < 1.3, process >= 1.1.0.1 && < 1.2, haskell98 >= 1.1 && < 1.2, unordered-containers >= 0.2.1.0 && < 0.3, text >= 0.11.2.0 && < 0.12, attoparsec >= 0.10.1.1 && < 0.11, system-filepath >= 0.4.6 && < 0.5, system-fileio >= 0.3.7 && < 0.4, cmdargs >= 0.9.5 && < 1.0
+  Build-Depends: base >= 3 && < 5, time, process, unordered-containers, text, attoparsec, system-filepath, system-fileio, cmdargs
