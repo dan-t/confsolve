@@ -5,7 +5,6 @@ import System.IO.Error (IOErrorType)
 import System.Environment
 import System.Process
 import System.Exit
-import Data.Char (intToDigit, digitToInt, isDigit, toUpper)
 import Data.Foldable (foldrM, foldlM)
 import qualified Data.HashMap.Strict as HM
 import qualified Filesystem as FS
@@ -20,6 +19,7 @@ import qualified Dropbox.Conflict as DB
 import qualified Wuala.Conflict as WU
 import Utils
 import ConfsolveArgs
+import ParseInput
 
 
 main = do
@@ -38,7 +38,7 @@ printRuntineHelp = do
    trashDir <- show <$> trashDirectory
    putStrLn $ ""
    putStrLn $ "Runtime Options:"
-   putStrLn $ "   (T)ake File (NUM) => By pressing 't' and a digit, the conflicting file with the"
+   putStrLn $ "   (T)ake File (NUM) => By pressing 't' and a number (e.g 't1'), the conflicting file with the"
    putStrLn $ "                        digit NUM is used as the new version. A copy of the"
    putStrLn $ "                        current file and the other conflicting files is put"
    putStrLn $ "                        into the trash directory '" ++ trashDir ++ "'."
@@ -46,11 +46,11 @@ printRuntineHelp = do
    putStrLn $ "   (M)ove to Trash   => By pressing 'm', all conflicting files are"
    putStrLn $ "                        moved into the trash directory '" ++ trashDir ++ "'."
    putStrLn $ ""
-   putStrLn $ "   Show (D)iff (NUM) => By pressing 'd' and a digit, the difference between the"
+   putStrLn $ "   Show (D)iff (NUM) => By pressing 'd' and a number (e.g 'd1'), the difference between the"
    putStrLn $ "                        current file and the conflicting file NUM is shown."
    putStrLn $ "                        If there's only one conflicting file, then only pressing"
    putStrLn $ "                        'd' is sufficient."
-   putStrLn $ "                        By pressing 'd' and two digits, the difference between"
+   putStrLn $ "                        By pressing 'd' and two numbers (e.g 'd1 2'), the difference between"
    putStrLn $ "                        the two conflicting files is shown."
    putStrLn $ "                        The diff tool can be specified by the user by setting the environment"
    putStrLn $ "                        variable 'CONFSOLVE_DIFF'. The default diff tool is 'gvimdiff -f'."
@@ -114,56 +114,43 @@ putConflict conflict = do
    putStrLn $ "\nConflicting file: " ++ (show $ FC.origFilePath conflict)
    void $ foldlM (\i c -> putConf i c >> (return $ i+1)) 1 (FC.conflictingFiles conflict)
    where
-      putConf idx conf =
-	 putStrLn $ "   (" ++ [intToDigit idx] ++ ") " ++ (show $ FC.details conf)
+      putConf fileNum conf =
+	 putStrLn $ "   (" ++ show fileNum ++ ") " ++ (show $ FC.details conf)
 
 
 askUser conflict = do
    putStr "\n(T)ake File (NUM) | (M)ove to Trash | Show (D)iff (NUM [NUM]) | (S)kip | (Q)uit | (H)elp: "
    line <- getLine
-   let confs        = FC.conflictingFiles conflict
-       numConfs     = length confs
-       validD       = validDigit 1 numConfs
-       invalidTake  = putStrLn $ "Invalid input! Use e.g: 't1'"
-       invalidDiff  = putStrLn $ "Invalid input! Use e.g: 'd1' or 'd12'"
-       invalidInput = putStrLn $ "Invalid input! See Help"
-       askAgain     = askUser conflict
-   case map toUpper line of
-        ('T':d:[]) | validD d  -> takeFile (digitToInt d) conflict
-	           | otherwise -> invalidTake >> askAgain
+   let confs    = FC.conflictingFiles conflict
+       numConfs = length confs
+       askAgain = putConflict conflict >> askUser conflict
 
-        ('M':[]) -> mapM_ (\c -> moveToTrash $ FC.filePath c) confs
+   case parseInput line numConfs of
+        Just (TakeFile num) ->
+           takeFile num conflict
 
-        ('D':[]) | numConfs == 1 -> do showDiff (FC.origFilePath conflict)
-	                                        (FC.filePath $ confs !! 0)
-				       askAgain
+        Just MoveToTrash ->
+           mapM_ (\c -> moveToTrash $ FC.filePath c) confs
 
-	         | otherwise     -> invalidInput >> askAgain
+        Just ShowDiff -> do
+           showDiff (FC.origFilePath conflict) (FC.filePath $ confs !! 0)
+           askAgain
 
-        ('D':d:[]) | validD d  -> do let i = (digitToInt d) - 1
-				     showDiff (FC.origFilePath conflict)
-				              (FC.filePath $ confs !! i)
-				     askAgain
+        Just (ShowDiffWith num) -> do 
+           showDiff (FC.origFilePath conflict) (FC.filePath $ confs !! (num - 1))
+           askAgain
 
-	           | otherwise -> invalidDiff >> askAgain
+        Just (ShowDiffBetween num1 num2) -> do
+           showDiff (FC.filePath $ confs !! (num1 - 1)) (FC.filePath $ confs !! (num2 - 1))
+	   askAgain
 
-        ('D':d1:d2:[]) | validD d1 && validD d2 -> do let i1 = (digitToInt d1) - 1
-						          i2 = (digitToInt d2) - 1
-						      showDiff (FC.filePath $ confs !! i1)
-						               (FC.filePath $ confs !! i2)
-						      askAgain
+        Just Skip -> return ()
+        Just Quit -> exitSuccess
+        Just Help -> printRuntineHelp >> askAgain
 
-		       | otherwise -> invalidDiff >> askAgain
-
-        ('S':[])  -> return ()
-	('Q':[])  -> exitSuccess
-	('H':[])  -> printRuntineHelp >> askAgain
-	('?':[])  -> printRuntineHelp >> askAgain
-	otherwise -> invalidInput >> askAgain
+        _         -> putStrLn $ "Invalid input! See Help"
 
    where
-      validDigit min max d = isDigit d && let i = digitToInt d in i >= min && i <= max
-
       moveToTrash filePath =
          errorsToStderr $ do
   	  trashDir <- trashDirectory
