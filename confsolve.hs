@@ -39,7 +39,7 @@ printRuntineHelp = do
    putStrLn $ ""
    putStrLn $ "Runtime Options:"
    putStrLn $ "   (T)ake File (NUM) => By pressing 't' and a number (e.g 't1'), the conflicting file with the"
-   putStrLn $ "                        digit NUM is used as the new version. A copy of the"
+   putStrLn $ "                        number NUM is used as the new version. A copy of the"
    putStrLn $ "                        current file and the other conflicting files is put"
    putStrLn $ "                        into the trash directory '" ++ trashDir ++ "'."
    putStrLn $ ""

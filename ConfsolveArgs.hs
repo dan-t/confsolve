@@ -19,7 +19,7 @@ confsolve = Confsolve {
    &= helpArg [explicit, name "help", name "h"]
    &= versionArg [explicit, name "version", name "v", summary versionInfo ]
 
-versionInfo = "confsolve version 0.3.3"
+versionInfo = "confsolve version 0.3.4"
 summaryInfo = ""
 
 confsolveArgs :: IO Confsolve
