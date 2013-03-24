@@ -1,5 +1,5 @@
 Name:          confsolve
-Version:       0.3.6
+Version:       0.3.7
 License:       BSD3
 License-file:  LICENSE
 Author:        Daniel Trstenjak
@@ -16,5 +16,13 @@ source-repository head
 
 Executable confsolve
   Main-is:       confsolve.hs
+  other-modules: FileConflict
+                 ParseInput
+                 Dropbox.Conflict
+                 Dropbox.FileNameParser
+                 Utils
+                 Wuala.Conflict
+                 Wuala.FileNameParser
+                 ConfsolveArgs
   ghc-options:   -funbox-strict-fields
   Build-Depends: base >= 3 && < 5, time, process, unordered-containers, text, attoparsec, system-filepath, system-fileio, cmdargs
