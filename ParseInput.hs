@@ -47,8 +47,8 @@ parseInput str numFiles =
 
 
 parseInts :: String -> [Int]
-parseInts str = go str []
+parseInts str = go str
    where
-      go str ints
-         | [(int, rest)] <- reads str :: [(Int, String)] = go rest (ints ++ [int])
-         | otherwise                                     = ints
+      go str
+         | [(int, rest)] <- reads str :: [(Int, String)] = int : go rest
+         | otherwise                                     = []
