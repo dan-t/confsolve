@@ -1,5 +1,5 @@
 Name:          confsolve
-Version:       0.3.7
+Version:       0.3.8
 License:       BSD3
 License-file:  LICENSE
 Author:        Daniel Trstenjak
@@ -7,6 +7,7 @@ Maintainer:    daniel.trstenjak@gmail.com
 Build-Type:    Simple
 Category:      Utils
 Cabal-Version: >=1.6
+Tested-With:   GHC==7.6.2
 Synopsis:      A command line tool for resolving conflicts of file synchronizers.
 Description:   A command line tool for resolving conflicts of file synchronizers.
 

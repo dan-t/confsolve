@@ -11,9 +11,8 @@ import qualified Filesystem as FS
 import qualified Data.Text as T
 import qualified Filesystem.Path.CurrentOS as FP
 import Filesystem.Path.CurrentOS ((</>))
-import Control.Monad (mapM_, when)
+import Control.Monad (mapM_, when, void)
 import Control.Applicative ((<$>))
-import Foreign.Marshal.Error (void)
 import qualified FileConflict as FC
 import qualified Dropbox.Conflict as DB
 import qualified Wuala.Conflict as WU

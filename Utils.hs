@@ -5,6 +5,7 @@ import System.IO
 import System.Environment
 import Data.Time.Clock
 import Data.Time.Calendar
+import qualified Control.Exception as E
 import Control.Exception.Base (try)
 import qualified Data.Text as T
 import qualified Filesystem as FS
@@ -13,7 +14,7 @@ import Filesystem.Path ((</>), (<.>))
 
 errorsToStderr :: IO () -> IO ()
 errorsToStderr action =
-   catch action (\e -> appPutStrLn stderr (show e))
+   E.catch action (\(e :: E.SomeException) -> appPutStrLn stderr (show e))
 
 appPutStrLn :: Handle -> String -> IO ()
 appPutStrLn handle string = do

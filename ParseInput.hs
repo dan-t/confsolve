@@ -1,3 +1,4 @@
+{-# LANGUAGE PatternGuards #-}
 
 module ParseInput where
 import Data.Char (toLower)
