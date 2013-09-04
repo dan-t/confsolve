@@ -1,3 +1,6 @@
+Command line tool for resolving file synchronization conflicts introduced by
+running Dropbox or Wuala.
+
 Make and Install:
    cabal install confsolve.cabal
 
