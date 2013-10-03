@@ -2,7 +2,7 @@
 
 module Wuala.FileNameParser where
 
-import Control.Applicative ((<*>), (<$>), (*>))
+import Control.Applicative ((<*>), (<$>), (*>), (<*), (<|>), pure)
 import qualified Data.Attoparsec.Text as P
 import qualified Data.Text as T
 import Data.Char (isNumber)
@@ -17,8 +17,9 @@ parse fileName =
 fileInfo :: P.Parser FileInfo
 fileInfo = FileInfo <$> (T.strip <$> tillLeftPar)
                     <*> (P.string "(conflicting version " *> version)
-                    <*> (P.string " from " *> tillRightPar)
+                    <*> maybeHost
    where
+      maybeHost    = (P.string " from " *> tillRightPar) <|> (pure "" <* P.char ')')
       version      = P.takeWhile1 isNumber
       tillLeftPar  = P.takeWhile1 (/= '(')
       tillRightPar = P.takeWhile1 (/= ')')
