@@ -26,4 +26,4 @@ Executable confsolve
                  Wuala.FileNameParser
                  ConfsolveArgs
   ghc-options:   -funbox-strict-fields
-  Build-Depends: base >= 3 && < 5, time, process, unordered-containers, text, attoparsec, system-filepath, system-fileio, cmdargs
+  Build-Depends: base >= 3 && < 5, time, process, unordered-containers, text, attoparsec, system-filepath >= 0.4.8, system-fileio, cmdargs
