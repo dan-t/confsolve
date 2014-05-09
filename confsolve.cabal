@@ -1,29 +1,44 @@
-Name:          confsolve
-Version:       0.4.1
-License:       BSD3
-License-file:  LICENSE
-Author:        Daniel Trstenjak
-Maintainer:    daniel.trstenjak@gmail.com
-Build-Type:    Simple
-Category:      Utils
-Cabal-Version: >=1.6
-Tested-With:   GHC==7.6.2
-Synopsis:      A command line tool for resolving conflicts of file synchronizers.
-Description:   A command line tool for resolving conflicts of file synchronizers.
-
+name: confsolve
+version: 0.4.1
+cabal-version: >=1.6
+build-type: Simple
+license: BSD3
+license-file: LICENSE
+maintainer: daniel.trstenjak@gmail.com
+synopsis: A command line tool for resolving conflicts of file synchronizers.
+description:
+    Command line tool for resolving file synchronization conflicts introduced by
+    running Dropbox or Wuala.
+category: Utils
+author: Daniel Trstenjak
+tested-with: GHC ==7.6.2
+ 
 source-repository head
-  type:     git
-  location: https://github.com/dan-t/confsolve
-
-Executable confsolve
-  Main-is:       confsolve.hs
-  other-modules: FileConflict
-                 ParseInput
-                 Dropbox.Conflict
-                 Dropbox.FileNameParser
-                 Utils
-                 Wuala.Conflict
-                 Wuala.FileNameParser
-                 ConfsolveArgs
-  ghc-options:   -funbox-strict-fields
-  Build-Depends: base >= 3 && < 5, time, process, unordered-containers, text, attoparsec, system-filepath >= 0.4.8, system-fileio, cmdargs
+    type: git
+    location: https://github.com/dan-t/confsolve
+ 
+executable confsolve
+    build-depends:
+        base >=3 && <5,
+        time -any,
+        process -any,
+        unordered-containers -any,
+        text -any,
+        attoparsec -any,
+        system-filepath >=0.4.8,
+        system-fileio -any,
+        cmdargs -any
+    main-is: confsolve.hs
+    buildable: True
+    other-modules:
+        FileConflict
+        ParseInput
+        Dropbox.Conflict
+        Dropbox.FileNameParser
+        Utils
+        Wuala.Conflict
+        Wuala.FileNameParser
+        ConfsolveArgs
+    ghc-options: -funbox-strict-fields
+ 
+ 
