@@ -1,5 +1,5 @@
 name: confsolve
-version: 0.4.1
+version: 0.5
 cabal-version: >=1.6
 build-type: Simple
 license: BSD3
@@ -20,14 +20,14 @@ source-repository head
 executable confsolve
     build-depends:
         base >=3 && <5,
-        time -any,
-        process -any,
-        unordered-containers -any,
-        text -any,
-        attoparsec -any,
-        system-filepath >=0.4.8,
-        system-fileio -any,
-        cmdargs -any
+        time >=1.4.0.1 && <1.5,
+        process >=1.1.0.2 && <1.2,
+        unordered-containers >=0.2.4.0 && <0.3,
+        text >=1.1.1.2 && <1.2,
+        attoparsec >=0.11.3.0 && <0.12,
+        system-filepath >=0.4.8 && <0.5,
+        system-fileio >=0.3.13 && <0.4,
+        cmdargs >=0.10.7 && <0.11
     main-is: confsolve.hs
     buildable: True
     other-modules:
