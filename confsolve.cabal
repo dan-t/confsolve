@@ -1,5 +1,5 @@
 name: confsolve
-version: 0.5.1
+version: 0.5.2
 cabal-version: >=1.6
 build-type: Simple
 license: BSD3
@@ -11,7 +11,7 @@ description:
     running Dropbox or Wuala.
 category: Utils
 author: Daniel Trstenjak
-tested-with: GHC ==7.6.2
+tested-with: GHC ==7.6.2, GHC ==7.6.3
  
 source-repository head
     type: git
