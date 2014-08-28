@@ -1,7 +1,12 @@
-{-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE DeriveDataTypeable, CPP #-}
 
 module ConfsolveArgs where
 import System.Console.CmdArgs
+
+#ifdef CABAL
+import Data.Version (showVersion)
+import Paths_confsolve (version)
+#endif
 
 data Confsolve = Confsolve {
    dropbox   :: Bool,
@@ -14,13 +19,18 @@ confsolve = Confsolve {
    wuala     = def &= help "Resolve Wuala file conflicts",
    directory = def &= args &= typ "DIRECTORY"
    }
-   &= summary summaryInfo
+   &= summary ""
    &= help "A command line tool for resolving conflicts of file synchronizers."
    &= helpArg [explicit, name "help", name "h"]
    &= versionArg [explicit, name "version", name "v", summary versionInfo ]
 
-versionInfo = "confsolve version 0.4.1"
-summaryInfo = ""
+versionInfo :: String
+versionInfo =
+#ifdef CABAL
+   "confsolve version " ++ showVersion version
+#else
+   "confsolve version unknown (not built with cabal)"
+#endif
 
 confsolveArgs :: IO Confsolve
 confsolveArgs = cmdArgs confsolve
