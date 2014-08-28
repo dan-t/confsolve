@@ -27,10 +27,10 @@ main = do
    args <- confsolveArgs
    let dir = FP.fromText $ T.pack (directory args)
    when (dropbox args) $
-      resolveConflicts DB.Parser dir
+      resolveConflicts DB.parse dir
 
    when (wuala args) $
-      resolveConflicts WU.Parser dir
+      resolveConflicts WU.parse dir
 
 
 printRuntineHelp = do
@@ -65,27 +65,27 @@ printRuntineHelp = do
 type Conflicts = HM.HashMap T.Text [FC.ConflictingFile]
 
 
-resolveConflicts :: FC.ConflictParser parser => parser -> FP.FilePath -> IO ()
-resolveConflicts parser filePath = do
-   conflicts <- collectConflicts parser filePath HM.empty
+resolveConflicts :: FC.ConflictParser -> FP.FilePath -> IO ()
+resolveConflicts parse filePath = do
+   conflicts <- collectConflicts parse filePath HM.empty
    mapM_ (handleConflict . conflict) (HM.toList conflicts)
    where
       conflict (path, files) = FC.Conflict (FP.fromText path) files
 
 
-collectConflicts :: FC.ConflictParser parser => parser -> FP.FilePath -> Conflicts -> IO Conflicts
-collectConflicts parser filePath conflicts = do
+collectConflicts :: FC.ConflictParser -> FP.FilePath -> Conflicts -> IO Conflicts
+collectConflicts parse filePath conflicts = do
    isDir <- FS.isDirectory filePath
    if isDir
       then do
          entries <- FS.listDirectory filePath
-         foldrM (\entry conflicts -> collectConflicts parser entry conflicts) conflicts entries
+         foldrM (\entry conflicts -> collectConflicts parse entry conflicts) conflicts entries
       else do
          isFile <- FS.isFile filePath
          if isFile
             then do
                let bname = toText $ FP.basename filePath
-               case FC.parseConflict parser bname of
+               case parse bname of
                     Just (realBaseName, details) -> do
                        return $ HM.insertWith (++)
                                               (toText $ replaceBaseName filePath (FP.fromText realBaseName))

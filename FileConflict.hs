@@ -14,8 +14,8 @@ type RealBaseName = T.Text
 -- conflicting file details displayed to the user
 type Details      = T.Text
 
-class ConflictParser a where
-   parseConflict :: a -> BaseName -> Maybe (RealBaseName, Details)
+-- the conflict file parser
+type ConflictParser = BaseName -> Maybe (RealBaseName, Details)
 
 -- the details and filePath of a conflicting file
 data ConflictingFile = ConflictingFile {
