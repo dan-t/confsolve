@@ -28,7 +28,7 @@ executable confsolve
         system-filepath >=0.4.8 && <0.5,
         system-fileio >=0.3.13 && <0.4,
         cmdargs >=0.10.7 && <0.11
-    main-is: confsolve.hs
+    main-is: Main.hs
     buildable: True
     other-modules:
         FileConflict
