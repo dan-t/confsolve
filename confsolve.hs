@@ -107,51 +107,50 @@ handleConflict conflict = do
       then putStrLn $ "Found conflicts for the file '" ++ show origFP ++ "', but the file itself is missing! Skipping it."
       else do
 	 putConflict conflict
-	 askUser conflict
-
-
-putConflict :: FC.Conflict -> IO ()
-putConflict conflict = do
-   putStrLn $ "\nConflicting file: " ++ (show $ FC.origFilePath conflict)
-   void $ foldlM (\i c -> putConf i c >> (return $ i+1)) 1 (FC.conflictingFiles conflict)
+	 askUserTillHandled conflict
    where
-      putConf fileNum conf =
-	 putStrLn $ "   (" ++ show fileNum ++ ") " ++ (show $ FC.details conf)
+      askUserTillHandled confict = do
+         reply    <- askUser confict
+         askAgain <- maybe (putStrLn "Invalid input! See Help" >> return True)
+                           (handleUserReply confict)
+                           reply
+         when askAgain $ do
+            putConflict confict
+            askUserTillHandled confict
 
 
-askUser conflict = do
-   putStr "\n(T)ake File (NUM) | (M)ove to Trash | Show (D)iff (NUM [NUM]) | (S)kip | (Q)uit | (H)elp: "
-   line <- getLine
-   let confs    = FC.conflictingFiles conflict
-       numConfs = length confs
-       askAgain = putConflict conflict >> askUser conflict
+type AskAgain = Bool
+handleUserReply :: FC.Conflict -> UserReply -> IO AskAgain
+handleUserReply conflict reply =
+   case reply of
+      TakeFile num -> do
+         takeFile num conflict
+         dontAskAgain
 
-   case parseInput line numConfs of
-        Just (TakeFile num) ->
-           takeFile num conflict
+      MoveToTrash -> do
+         mapM_ (\c -> moveToTrash $ FC.filePath c) confs
+         dontAskAgain
 
-        Just MoveToTrash ->
-           mapM_ (\c -> moveToTrash $ FC.filePath c) confs
+      ShowDiff -> do
+         showDiff (FC.origFilePath conflict) (FC.filePath $ confs !! 0)
+         askAgain
 
-        Just ShowDiff -> do
-           showDiff (FC.origFilePath conflict) (FC.filePath $ confs !! 0)
-           askAgain
+      ShowDiffWith num -> do
+         showDiff (FC.origFilePath conflict) (FC.filePath $ confs !! (num - 1))
+         askAgain
 
-        Just (ShowDiffWith num) -> do 
-           showDiff (FC.origFilePath conflict) (FC.filePath $ confs !! (num - 1))
-           askAgain
+      ShowDiffBetween num1 num2 -> do
+         showDiff (FC.filePath $ confs !! (num1 - 1)) (FC.filePath $ confs !! (num2 - 1))
+         askAgain
 
-        Just (ShowDiffBetween num1 num2) -> do
-           showDiff (FC.filePath $ confs !! (num1 - 1)) (FC.filePath $ confs !! (num2 - 1))
-	   askAgain
-
-        Just Skip -> return ()
-        Just Quit -> exitSuccess
-        Just Help -> printRuntineHelp >> askAgain
-
-        _         -> putStrLn $ "Invalid input! See Help"
-
+      Skip -> dontAskAgain
+      Quit -> exitSuccess
+      Help -> printRuntineHelp >> askAgain
    where
+      confs        = FC.conflictingFiles conflict
+      askAgain     = return True
+      dontAskAgain = return False
+
       moveToTrash filePath =
          errorsToStderr $ do
   	  trashDir <- trashDirectory
@@ -184,3 +183,19 @@ askUser conflict = do
          return ()
 
       quote string = "\"" ++ string ++ "\""
+
+
+putConflict :: FC.Conflict -> IO ()
+putConflict conflict = do
+   putStrLn $ "\nConflicting file: " ++ (show $ FC.origFilePath conflict)
+   void $ foldlM (\i c -> putConf i c >> (return $ i+1)) 1 (FC.conflictingFiles conflict)
+   where
+      putConf fileNum conf =
+	 putStrLn $ "   (" ++ show fileNum ++ ") " ++ (show $ FC.details conf)
+
+
+askUser :: FC.Conflict -> IO (Maybe UserReply)
+askUser conflict = do
+   putStr "\n(T)ake File (NUM) | (M)ove to Trash | Show (D)iff (NUM [NUM]) | (S)kip | (Q)uit | (H)elp: "
+   line <- getLine
+   return $ parseInput line (length . FC.conflictingFiles $ conflict)
