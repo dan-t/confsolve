@@ -21,6 +21,7 @@ import ConfsolveArgs
 import ParseInput
 
 
+main :: IO ()
 main = do
    hSetBuffering stdout NoBuffering
    hSetBuffering stdin  NoBuffering
@@ -33,6 +34,7 @@ main = do
       resolveConflicts WU.parse dir
 
 
+printRuntineHelp :: IO ()
 printRuntineHelp = do
    trashDir <- show <$> trashDirectory
    putStrLn $ ""
