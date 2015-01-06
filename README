@@ -1,6 +1,8 @@
 Command line tool for resolving file synchronization conflicts introduced by
 running Dropbox or Wuala.
 
+If you prefer a Rust version: https://github.com/dan-t/rust-confsolve.
+
 Make and Install:
    cabal install confsolve.cabal
 
