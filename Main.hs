@@ -1,4 +1,4 @@
-{-# LANGUAGE ScopedTypeVariables, OverloadedStrings #-}
+{-# LANGUAGE ScopedTypeVariables, OverloadedStrings, FlexibleContexts #-}
 
 import System.IO
 import System.IO.Error (IOErrorType)
