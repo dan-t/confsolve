@@ -1,5 +1,5 @@
 name: confsolve
-version: 0.5.4
+version: 0.5.5
 cabal-version: >=1.6
 build-type: Simple
 license: BSD3
